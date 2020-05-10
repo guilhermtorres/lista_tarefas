@@ -12,6 +12,8 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   final toDoController = TextEditingController();
   List toDoList = [];
+  Map<String, dynamic> lastRemoved;
+  int lastRemovedPosition;
 
   @override
   void initState() {
@@ -118,25 +120,67 @@ class _HomeViewState extends State<HomeView> {
         color: Colors.red,
         child: Align(
           alignment: Alignment(-0.9, 0.0),
-          child: Icon(
-            Icons.delete,
-            color: Colors.white,
+          child: Row(
+            children: <Widget>[
+              Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
+              Text(
+                '  Excluir Tarefa!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            ],
           ),
         ),
       ),
       direction: DismissDirection.startToEnd,
-      child: CheckboxListTile(
-        onChanged: (check) {
-          setState(() {
-            toDoList[index]['ok'] = check;
-            saveData();
-          });
-        },
-        value: toDoList[index]['ok'],
-        title: Text(toDoList[index]['title']),
-        secondary: CircleAvatar(
-          child: Icon(
-            toDoList[index]['ok'] ? Icons.check : Icons.child_care,
+      onDismissed: (direction) {
+        setState(() {
+          lastRemoved = Map.from(toDoList[index]);
+          lastRemovedPosition = index;
+          toDoList.removeAt(index);
+          saveData();
+
+          final snack = SnackBar(
+            content: Text(
+              'Tarefa \"${lastRemoved['title']}\" removida!',
+            ),
+            action: SnackBarAction(
+              label: 'Desfazer',
+              onPressed: () {
+                setState(() {
+                  toDoList.insert(lastRemovedPosition, lastRemoved);
+                  saveData();
+                });
+              },
+            ),
+            duration: Duration(seconds: 3),
+          );
+
+          Scaffold.of(context).removeCurrentSnackBar();
+          Scaffold.of(context).showSnackBar(snack);
+        });
+      },
+      child: Card(
+        elevation: 8,
+        child: CheckboxListTile(
+          onChanged: (check) {
+            setState(() {
+              toDoList[index]['ok'] = check;
+              saveData();
+            });
+          },
+          value: toDoList[index]['ok'],
+          title: Text(toDoList[index]['title']),
+          secondary: CircleAvatar(
+            child: Icon(
+              toDoList[index]['ok'] ? Icons.check : Icons.child_care,
+            ),
           ),
         ),
       ),
