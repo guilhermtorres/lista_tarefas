@@ -36,6 +36,23 @@ class _HomeViewState extends State<HomeView> {
     });
   }
 
+  Future<Null> refresh() async {
+    await Future.delayed(Duration(seconds: 1));
+
+    setState(() {
+      toDoList.sort((a, b) {
+        if (a['ok'] && !b['ok'])
+          return 1;
+        else if (!a['ok'] && b['ok'])
+          return -1;
+        else
+          return 0;
+      });
+      saveData();
+    });
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,9 +117,12 @@ class _HomeViewState extends State<HomeView> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: ListView.builder(
-                itemBuilder: buildItem,
-                itemCount: toDoList.length,
+              child: RefreshIndicator(
+                onRefresh: refresh,
+                child: ListView.builder(
+                  itemBuilder: buildItem,
+                  itemCount: toDoList.length,
+                ),
               ),
             ),
           ),
