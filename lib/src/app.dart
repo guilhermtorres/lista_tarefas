@@ -12,13 +12,17 @@ class ToDoListApp extends StatelessWidget {
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
+              button: TextStyle(
+                color: Colors.cyan[200],
+                fontWeight: FontWeight.bold,
+              ),
               subtitle: TextStyle(
                 fontFamily: 'DidactGothic',
                 fontSize: 24,
               ),
             ),
         primarySwatch: Colors.teal,
-        accentColor: Colors.cyan[200],
+        accentColor: Colors.teal[600],
         appBarTheme: AppBarTheme(
           color: Colors.teal[400],
           textTheme: ThemeData.light().textTheme.copyWith(
