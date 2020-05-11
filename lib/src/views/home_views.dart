@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
+import 'package:lista_tarefas/src/utils/flushbar.dart';
 import 'package:path_provider/path_provider.dart';
 
 class HomeView extends StatefulWidget {
@@ -25,14 +27,49 @@ class _HomeViewState extends State<HomeView> {
     });
   }
 
-  void addToDo() {
+  void addToDo(BuildContext context) {
     setState(() {
       Map<String, dynamic> newToDo = Map();
-      newToDo['title'] = toDoController.text;
-      toDoController.text = '';
-      newToDo['ok'] = false;
-      toDoList.add(newToDo);
-      saveData();
+      if (toDoController.text.isEmpty) {
+        Flushbar(
+          messageText: Text(
+            'Você esqueceu da Tarefa!',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.red,
+          margin: EdgeInsets.all(25),
+          borderRadius: 50,
+          duration: Duration(seconds: 2),
+          title: 'Ops',
+        ).show(context);
+      } else if (toDoList.indexWhere((map) => map['title'] == toDoController.text) == -1) {
+        newToDo['title'] = toDoController.text;
+        toDoController.text = '';
+        newToDo['ok'] = false;
+        toDoList.add(newToDo);
+        saveData();
+      } else {
+        Flushbar(
+          messageText: Text(
+            'Ops, essa tarefa já existe!',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.red,
+          margin: EdgeInsets.all(25),
+          borderRadius: 50,
+          duration: Duration(seconds: 2),
+        ).show(context);
+      }
     });
   }
 
@@ -101,7 +138,7 @@ class _HomeViewState extends State<HomeView> {
                   child: RaisedButton(
                     elevation: 10,
                     color: Theme.of(context).accentColor,
-                    onPressed: addToDo,
+                    onPressed: () => addToDo(context),
                     child: Text(
                       'Add',
                       style: TextStyle(
@@ -120,6 +157,7 @@ class _HomeViewState extends State<HomeView> {
               child: RefreshIndicator(
                 onRefresh: refresh,
                 child: ListView.builder(
+                  shrinkWrap: true,
                   itemBuilder: buildItem,
                   itemCount: toDoList.length,
                 ),
@@ -165,25 +203,17 @@ class _HomeViewState extends State<HomeView> {
           lastRemovedPosition = index;
           toDoList.removeAt(index);
           saveData();
-
-          final snack = SnackBar(
-            content: Text(
-              'Tarefa \"${lastRemoved['title']}\" removida!',
-            ),
-            action: SnackBarAction(
-              label: 'Desfazer',
-              onPressed: () {
-                setState(() {
-                  toDoList.insert(lastRemovedPosition, lastRemoved);
-                  saveData();
-                });
-              },
-            ),
-            duration: Duration(seconds: 3),
+          FlushBarWidget().fodase(
+            context: context,
+            error: true,
+            title: 'Tarefa \"${lastRemoved['title']}\" removida!',
+            f: () {
+              setState(() {
+                toDoList.insert(lastRemovedPosition, lastRemoved);
+                saveData();
+              });
+            },
           );
-
-          Scaffold.of(context).removeCurrentSnackBar();
-          Scaffold.of(context).showSnackBar(snack);
         });
       },
       child: Card(
@@ -193,6 +223,12 @@ class _HomeViewState extends State<HomeView> {
             setState(() {
               toDoList[index]['ok'] = check;
               saveData();
+              if (check)
+                FlushBarWidget().check(
+                  title: toDoList[index]['title'],
+                  selected: check,
+                  context: context,
+                );
             });
           },
           value: toDoList[index]['ok'],
