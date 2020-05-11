@@ -209,8 +209,23 @@ class _HomeViewState extends State<HomeView> {
             title: 'Tarefa \"${lastRemoved['title']}\" removida!',
             f: () {
               setState(() {
+                if (toDoList.indexWhere((map) => map['title'] == lastRemoved['title']) == -1){
                 toDoList.insert(lastRemovedPosition, lastRemoved);
-                saveData();
+                saveData();} else { Flushbar(
+          messageText: Text(
+            'Ops, essa tarefa já existe!',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.red,
+          margin: EdgeInsets.all(25),
+          borderRadius: 50,
+          duration: Duration(seconds: 2),
+        ).show(context);}
               });
             },
           );
